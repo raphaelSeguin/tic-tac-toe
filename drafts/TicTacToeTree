@@ -1,0 +1,115 @@
+/* - - - - - - - - - - - - -
+un objet tictac qui contient :
+- un état du jeu
+  - état des cases
+  - tour
+- une liste d'objet enfants
+- une référence à l'objet parent
+
+Méthodes :
+- afficher l'état (cases et tour)
+- trouver les états enfants
+- tester si  le jeu est fini
+-
+
+- - - - - - - - - - - - - - */
+
+const Tree = function(name, parent) {
+  this.name = name;
+  this.parent = parent;
+  this.children = [];
+}
+Tree.prototype.branch = function(name) {
+  const branch = new Tree(name, this);
+  this.children.push(branch);
+}
+Tree.prototype.leaves = function() {
+  // return an array of all the leaves
+  const findLeaves = (children) => {
+    children.reduce( (leavesArray, child) => {
+      return leavesArray.push(
+                child.children.length !== 0
+                  ? findLeaves(child.children)
+                  : child);
+    }, []);
+    return findLeaves(this.children);
+  }
+}
+
+const arbre = new Tree('chêne');
+arbre.branch('a');
+arbre.branch('b');
+arbre.branch('c');
+arbre.leaves(); // -> [a, b, c]
+
+
+
+
+
+/*
+const TicTacToeGames = function() {
+  this.tree = {board, turn, children};
+  this.board = [
+    0, 0, 0,
+    0, 0, 0,
+    0, 0, 0,
+  ];
+  this.turn = 1;
+  this.play = function(player, position) {
+    if (this.board[position] !== 0) {
+      throw Error('position occupied');
+    } else {
+      this.board[position] = player;
+    }
+  }
+  this.explore = function() {
+    // stocke la board comme tableau de départ dans history
+    this.tree.board = this.board;
+    this.tree.turn = this.turn;
+
+    // trouve toutes les cases vide
+    const empty = this.board.filter( i => i === 0 );
+    empty.forEach( i => {
+      // crée un tableau qui recopie le jeu et ajoute un pion dans la case i;
+      let nextBoard = [];
+      let c = board.length;
+      while (--c) {
+        nextBoard[c] = this.board[c];
+      }
+      nextBoard[i] = this.turn;
+      this.children.push(nextBoard);
+    });
+  }
+}
+*/
+// ----------------------------------------------------------------
+
+/*
+const tictac = {
+  tree: {
+    board: [
+      '_', '_', '_',
+      '_', '_', '_',
+      '_', '_', '_'
+    ],
+    children: [],
+    turn: 1,
+  },
+  display: function() {
+    const b = this.tree.board;
+    console.log(b[0]+' '+b[1]+' '+b[2]);
+    console.log(b[3]+' '+b[4]+' '+b[5]);
+    console.log(b[6]+' '+b[7]+' '+b[8]);
+  }
+  nextMoves: function(state) {
+    const b = state.tree.board;
+    const possibleMoves = b.filter( pl => pl === '_' );
+    possibleMoves.forEach( (p) => {
+      const newState = b.slice();
+      newState[p] = state.turn === 1 ? 'X' : 'O';
+      state.chlidren.push(newState);
+    })
+  }
+}
+
+*/
