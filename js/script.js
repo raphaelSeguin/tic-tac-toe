@@ -1,6 +1,8 @@
 // TO DO !!!!!
 //Empty squares are highlighted with player's symbol when moused over
 
+// bim bidim 
+
 'use strict';
 // tic tac toe object
 const tictactoe = {
