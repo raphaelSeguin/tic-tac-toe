@@ -1,5 +1,5 @@
 'use strict';
-
+// computer player version
 const ttt = (function(){
   // templates
   const startTemplate = `<div class="screen screen-start" id="start">
@@ -227,7 +227,7 @@ const ttt = (function(){
 
     // else computer plays !!
 
-    
+
   }
   const displayWin = () => {
     const winner = tictactoe.finishTest();
