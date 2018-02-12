@@ -152,10 +152,13 @@ const ttt = (function() {
     return chosenMove;
   }
 
-  // Actions (side effects)
+  // actions (side effects)
   const promptName = () => {
+    // ask player's name
     playerName = prompt("Player One's Name ?", "Player One");
+    // is it versus computer ?
     vsComputer = getId('vs-computer').checked;
+    // set the opponent's name in function
     opponentName = vsComputer
                       ? navigator.userAgent.split(' ')[3]
                       : prompt("Player Two's Name ?", "Player Two");
@@ -165,7 +168,9 @@ const ttt = (function() {
     getId('player-two-name').textContent = opponentName;
   }
   const changeTurn = (newTurn) => {
+    // change the turn
     turn = newTurn;
+    // and display it
     if (newTurn === 1) {
       getId('player1').classList.add('active');
       getId('player2').classList.remove('active');
@@ -180,8 +185,9 @@ const ttt = (function() {
     }
   }
 
-  // game phases
+  // game phases go in cycle
   const gameStart = () => {
+    // initialize the board
     tttBoard = [
       0, 0, 0,
       0, 0, 0,
@@ -224,18 +230,23 @@ const ttt = (function() {
 
   }
 
-  // eventListener
+  // eventListeners
   const setStartButton = () => {
     document.getElementsByTagName('a')[0].addEventListener('click', () => {
       playerName = promptName();
       display(gameTemplate);
     });
   }
+  // the game logic is here
   const boxListeners = () => {
-    const boxes = Array.from(getClass('box'));
+    // make an array of boxes elements
+    const boxes = Array.from( getClass('box') );
+    // add listeners on each of them
     boxes.forEach( (box) => {
+      //
       box.addEventListener('click', (event) => {
         let boxNumber = event.target.id;
+        // if it's not computer's turn and the box is empty
         if ( !(turn === 2 && vsComputer) && emptyBox({position: boxNumber, board: tttBoard}) ) {
           // play
           tttBoard = play({
@@ -245,12 +256,12 @@ const ttt = (function() {
           });
           // display
           boxes[boxNumber].classList.add('box-filled-' + turn);
-          //changeTurn(turn === 1 ? 2 : 1);
           // test
           const playerWins = wins({
             board: tttBoard,
             player: turn
           });
+          // take actions if the game is finished (win or tie)
           if ( playerWins ) {
             gameEnd(turn);
             return;
@@ -260,13 +271,14 @@ const ttt = (function() {
             return;
           }
           else {
+            // if not finished change the turn
             changeTurn(turn === 1 ? 2 : 1);
+            // and if player two is the computer ...
             if ( vsComputer ) {
+              // wait a little while to pretend it's thinking
               setTimeout(() => {
-                //let computerMove = computerPlay(tttBoard);
-
+                // then find a smart move
                 let computerMove = minimax(tttBoard, 2).index;
-                // minimax();
                 // play
                 tttBoard = play({
                   player: 2,
@@ -275,7 +287,6 @@ const ttt = (function() {
                 });
                 // display
                 boxes[computerMove].classList.add('box-filled-' + turn);
-                // computer plays
                 // test
                 const computerWins = wins({
                   board: tttBoard,
@@ -296,6 +307,22 @@ const ttt = (function() {
           }
         }
       });
+      // make the box highlighted with player's symbol when moused over
+      box.addEventListener('mouseenter', (e) => {
+        // check that it's not computer's turn
+        const boxIsEmpty = emptyBox({board: tttBoard, position: e.target.id});
+        const notComputersTurn = ! (vsComputer && turn === 2);
+        // add class to the box when the mouse enters
+        if ( boxIsEmpty && notComputersTurn ) {
+          e.target.classList.add('box-filled-' + turn);
+        }
+      })
+      box.addEventListener('mouseleave', (e) => {
+        // leave the box empty if it must
+        if ( emptyBox({board: tttBoard, position: e.target.id}) ) {
+          e.target.classList.remove('box-filled-' + turn);
+        }
+      })
     });
   }
   // START THE GAME
