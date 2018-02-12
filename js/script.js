@@ -103,16 +103,8 @@ const ttt = (function() {
   const emptyBox = ({position, board} = {}) => {
     return board[position] === 0;
   }
-  const computerPlay = (board) => {
-    let move;
-    do {
-      move = Math.floor(Math.random()*9);
-    } while( !emptyBox({position: move, board}) ) ;
-    return move;
-  }
-
-  const minimax = (board, player) => {
-    // evaluation / base case
+  const minimax = ({board, player} = {}) => {
+    // evaluation / base case return if the game if finished
     if( wins({board, player: 2}) ) {
       return {score: 10};
     } else if ( wins({board, player: 1}) ) {
@@ -120,7 +112,7 @@ const ttt = (function() {
     } else if ( tieGame(board) ) {
       return {score: 0};
     }
-    // find possible moves
+    // find possible moves and call minimax on them
     const possibleMoves = board.reduce( (pMoves, box, index) => {
       return box === 0 ? pMoves.concat(index) : pMoves;
     }, [])
@@ -128,11 +120,11 @@ const ttt = (function() {
       const move = {};
       board[index] = player;
       move.index = index;
-      move.score = minimax(board, player === 1 ? 2 : 1).score;
+      move.score = minimax({board, player: player === 1 ? 2 : 1}).score;
       board[index] = 0;
       return move;
     });
-
+    // find the best score among possible moves
     const bestScore = possibleMoves.reduce( (bestScore, move) => {
       if ( player === 2 ) {
         return move.score > bestScore ? move.score : bestScore;
@@ -140,15 +132,16 @@ const ttt = (function() {
         return move.score < bestScore ? move.score : bestScore;
       }
     }, player === 2 ? -10000 : 10000);
+    // find the best moves (those who yield the best score)
     const bestMoves = possibleMoves.reduce( (bestMoves, move) => {
       return move.score === bestScore
               ? bestMoves.concat(move)
               : bestMoves
               ;
     }, []);
-
+    // chose randomly one of the best moves
     const chosenMove = bestMoves[ Math.floor(Math.random() * bestMoves.length) ];
-
+    // return it
     return chosenMove;
   }
 
@@ -227,7 +220,6 @@ const ttt = (function() {
       getClass('message')[0].textContent = endGameMessage;
       getClass('button')[0].addEventListener('click', gameStart);
     }, 500);
-
   }
 
   // eventListeners
@@ -278,7 +270,7 @@ const ttt = (function() {
               // wait a little while to pretend it's thinking
               setTimeout(() => {
                 // then find a smart move
-                let computerMove = minimax(tttBoard, 2).index;
+                let computerMove = minimax({board: tttBoard, player: 2}).index;
                 // play
                 tttBoard = play({
                   player: 2,
