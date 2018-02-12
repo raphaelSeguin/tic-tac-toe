@@ -1,255 +1,303 @@
+/*
+Ajouter les commentaires
+effacer fonctions inutiles
+ameliorer minimax pour choisir aléatoirement un des meilleurs coups
+computer player en option au début
+*/
 'use strict';
-// computer player version
-const ttt = (function(){
+
+const ttt = (function() {
+  let tttBoard;
+  let turn = 1;
+  let playerName = '';
+  let opponentName = '';
+  let vsComputer;
+
   // templates
   const startTemplate = `<div class="screen screen-start" id="start">
-    <header>
-      <h1>Tic Tac Toe</h1>
-      <a href="#" class="button">Start game</a>
-    </header>
-  </div>`;
+                            <header>
+                              <h1>Tic Tac Toe</h1>
+                              <a href="#" class="button">Start game</a>
+                              <br>
+                              <input type="checkbox" id="vs-computer">VS. Computer</input>
+                            </header>
+                          </div>`;
   const gameTemplate = `<div class="board" id="board">
-    <header>
-      <h1>Tic Tac Toe</h1>
-      <ul>
-        <li class="players" id="player1">
-          <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 42 42" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g transform="translate(-200.000000, -60.000000)" fill="#000000"><g transform="translate(200.000000, 60.000000)"><path d="M21 36.6L21 36.6C29.6 36.6 36.6 29.6 36.6 21 36.6 12.4 29.6 5.4 21 5.4 12.4 5.4 5.4 12.4 5.4 21 5.4 29.6 12.4 36.6 21 36.6L21 36.6ZM21 42L21 42C9.4 42 0 32.6 0 21 0 9.4 9.4 0 21 0 32.6 0 42 9.4 42 21 42 32.6 32.6 42 21 42L21 42Z"/></g></g></g></svg>
-          <p id="player-one-name"></p>
-        </li>
-        <li class="players" id="player2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="42" height="43" viewBox="0 0 42 43" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g transform="translate(-718.000000, -60.000000)" fill="#000000"><g transform="translate(739.500000, 81.500000) rotate(-45.000000) translate(-739.500000, -81.500000) translate(712.000000, 54.000000)"><path d="M30 30.1L30 52.5C30 53.6 29.1 54.5 28 54.5L25.5 54.5C24.4 54.5 23.5 53.6 23.5 52.5L23.5 30.1 2 30.1C0.9 30.1 0 29.2 0 28.1L0 25.6C0 24.5 0.9 23.6 2 23.6L23.5 23.6 23.5 2.1C23.5 1 24.4 0.1 25.5 0.1L28 0.1C29.1 0.1 30 1 30 2.1L30 23.6 52.4 23.6C53.5 23.6 54.4 24.5 54.4 25.6L54.4 28.1C54.4 29.2 53.5 30.1 52.4 30.1L30 30.1Z"/></g></g></g></svg>
-          <p id="player-two-name"></p>
-        </li>
-      </ul>
-    </header>
-    <ul class="boxes">
-      <li class="box"></li>
-      <li class="box"></li>
-      <li class="box"></li>
-      <li class="box"></li>
-      <li class="box"></li>
-      <li class="box"></li>
-      <li class="box"></li>
-      <li class="box"></li>
-      <li class="box"></li>
-    </ul>
-  </div>`;
+                            <header>
+                              <h1>Tic Tac Toe</h1>
+                              <ul>
+                                <li class="players" id="player1">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 42 42" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g transform="translate(-200.000000, -60.000000)" fill="#000000"><g transform="translate(200.000000, 60.000000)"><path d="M21 36.6L21 36.6C29.6 36.6 36.6 29.6 36.6 21 36.6 12.4 29.6 5.4 21 5.4 12.4 5.4 5.4 12.4 5.4 21 5.4 29.6 12.4 36.6 21 36.6L21 36.6ZM21 42L21 42C9.4 42 0 32.6 0 21 0 9.4 9.4 0 21 0 32.6 0 42 9.4 42 21 42 32.6 32.6 42 21 42L21 42Z"/></g></g></g></svg>
+                                  <p id="player-one-name">${playerName}</p>
+                                </li>
+                                <li class="players" id="player2">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="42" height="43" viewBox="0 0 42 43" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g transform="translate(-718.000000, -60.000000)" fill="#000000"><g transform="translate(739.500000, 81.500000) rotate(-45.000000) translate(-739.500000, -81.500000) translate(712.000000, 54.000000)"><path d="M30 30.1L30 52.5C30 53.6 29.1 54.5 28 54.5L25.5 54.5C24.4 54.5 23.5 53.6 23.5 52.5L23.5 30.1 2 30.1C0.9 30.1 0 29.2 0 28.1L0 25.6C0 24.5 0.9 23.6 2 23.6L23.5 23.6 23.5 2.1C23.5 1 24.4 0.1 25.5 0.1L28 0.1C29.1 0.1 30 1 30 2.1L30 23.6 52.4 23.6C53.5 23.6 54.4 24.5 54.4 25.6L54.4 28.1C54.4 29.2 53.5 30.1 52.4 30.1L30 30.1Z"/></g></g></g></svg>
+                                  <p id="player-two-name">${playerName}</p>
+                                </li>
+                              </ul>
+                            </header>
+                            <ul class="boxes">
+                              <li class="box" id="0"></li>
+                              <li class="box" id="1"></li>
+                              <li class="box" id="2"></li>
+                              <li class="box" id="3"></li>
+                              <li class="box" id="4"></li>
+                              <li class="box" id="5"></li>
+                              <li class="box" id="6"></li>
+                              <li class="box" id="7"></li>
+                              <li class="box" id="8"></li>
+                            </ul>
+                          </div>`;
   const winTemplate = `<div class="screen screen-win" id="finish">
-    <header>
-      <h1>Tic Tac Toe</h1>
-      <p class="message"></p>
-      <a href="#" class="button">New game</a>
-    </header>
-  </div>`;
+                          <header>
+                            <h1>Tic Tac Toe</h1>
+                            <p class="message"></p>
+                            <a href="#" class="button">New game</a>
+                          </header>
+                        </div>`;
+  // aliases
+  const getId = (id) => document.getElementById(id);
+  const getClass = (className) => document.getElementsByClassName(className);
+  // display function
+  const display = (template) => {
+    getId('tic-tac-toe-container').innerHTML = template;
+  }
 
-  const tictactoe = {
-    board: [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    turn: 1,
-    players: [
-      {
-        name: '',
-        type: 'human'
-      },
-      {
-        name: '',
-        type: 'computer'
-      }
-    ],
-    init: function() {
-      this.board = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-      this.turn = 1;
-    },
-    play: function(position) {
-      if (this.board[position] === 0) {
-        this.board[position] = this.turn; // 1 for player 1 ...
-        return true;
-      } else {
-        return false;
-      }
-    },
-    finishTest: function(board) {
-      const g = board || this.board;
-      // return 1 or 2 if one player wins
-      // 0 for a Tie
-      // false if the game is not finished
-      return (
-        g[0] === g[1] && g[0] === g[2] && g[0] !== 0
-        ||
-        g[3] === g[4] && g[3] === g[5] && g[3] !== 0
-        ||
-        g[6] === g[7] && g[6] === g[8] && g[6] !== 0
-        ||
-        g[0] === g[3] && g[0] === g[6] && g[0] !== 0
-        ||
-        g[1] === g[4] && g[1] === g[7] && g[1] !== 0
-        ||
-        g[2] === g[5] && g[2] === g[8] && g[2] !== 0
-        ||
-        g[0] === g[4] && g[0] === g[8] && g[0] !== 0
-        ||
-        g[2] === g[4] && g[2] === g[6] && g[2] !== 0)
-        ? this.turn
-        : g.includes(0)
-          ? false
-          : 0
-          ;
-    },
-    isEmpty: function(box) {
-      return this.board[box] === 0;
-    },
-    endTest: function() {
-      // ???
-    },
-    minimax: function(board, player) {
-      // ********* base cases ***********
-      // if game is finihed
-        // if player wins return {score: 10}
-        // if opponent wins return {score: -10}
-        // if tie return {score: 0}
-
-      if ( this.finishTest(board) === 2 ) {
-        return {score: 10};
-      } else if ( this.finishTest(board) === 1 ) {
-        return {score: -10};
-      } else if ( this.finishTest(board) === 0 ) {
-        return {score: 0};
-      }
-      // make an empty boxes indexes array
-      const emptyBoxes = board.reduce( (empty, el, index) => {
-        return el === 0
-                ? empty.concat(index)
-                : empty;
-      }, [])
-      // make an array for storing move objects
-      const moves = [];
-      // for each element in the empty boxes array
-      emptyBoxes.forEach( (el) => {
-        // make a move object
-        const move = {};
-        move.index = el;
-        board[el] = player;
-        move.score = this.minimax(board, (player + 1) % 2).score;
-        moves.push(move);
-        board[el] = 0;
-      });
-      console.log(moves);
-      let bestMove;
-      if ( player === 2 ) { // MIN
-        bestMove = moves.reduce( (min, move) => {
-            return move.score < min.score ? move : min;
-          }, {score: 10000});
-      } else { // MAX
-        bestMove = moves.reduce( (max, move) => {
-            return move.score > max.score ? move : max;
-          }, {score: -10000});
-      }
-      // chose the best score in moves according to current turn
-        // if player
-      return bestMove;
+  // tictactoe functions (pure)
+  const wins = ({board, player} = {}) => {
+    const b = board;
+    const p = player;
+    const row = (player, ...boxes) => {
+      return b[boxes[0]] === b[boxes[1]] && b[boxes[0]] === b[boxes[2]] && b[boxes[0]] === player;
     }
-  };
-  // query container div
-  const container = document.getElementById('tic-tac-toe-container');
-  // Displays
-  const displayStart = () => {
-    // display start screen
-    container.innerHTML = startTemplate;
-    // when the user clicks the button
-    document.getElementsByTagName('a')[0].addEventListener('click', () => {
-      // initialise the game
-      tictactoe.init();
-      // ask for players names
-      const playerOneName = prompt("Player one's name ?", "player one");
-      const playerTwoName = prompt("Player two's name ?", "player two");
-      // set the object fields accordingly
-      tictactoe.players[0].name = playerOneName;
-      tictactoe.players[1].name = playerTwoName;
-      // call displaygame to ...
-      displayGame();
-    });
+    return (
+      row(player, 0, 1, 2)
+      ||
+      row(player, 3, 4, 5)
+      ||
+      row(player, 6, 7, 8)
+      ||
+      row(player, 0, 3, 6)
+      ||
+      row(player, 1, 4, 7)
+      ||
+      row(player, 2, 5, 8)
+      ||
+      row(player, 0, 4, 8)
+      ||
+      row(player, 2, 4, 6)
+    );
   }
-  const displayGame = () => {
-    // display the game screen
-    container.innerHTML = gameTemplate;
-    // query the elements
-    const player1 = document.getElementById('player1');
-    const player2 = document.getElementById('player2');
-    const player1Name = document.getElementById('player-one-name');
-    const player2Name = document.getElementById('player-two-name');
-    const boxes = document.getElementsByClassName('box');
-    // set the players names display
-    player1Name.textContent = tictactoe.players[0].name || 'player one';
-    player2Name.textContent = tictactoe.players[1].name || 'player two';
-    // first player's turn
-    player1.classList.add('active');
-    // attach listeners to the boxes
+  const tieGame = (board) => {
+    return ! (
+      board.indexOf(0) > -1
+      || wins({board: board, player: 1})
+      || wins({board, player: 2})
+    );
+  }
+  const play = ({player, position, board} = {}) => {
+    const newBoard = [...board];
+    newBoard[position] = player;
+    return newBoard;
+  }
+  const emptyBox = ({position, board} = {}) => {
+    return board[position] === 0;
+  }
+  const computerPlay = (board) => {
+    let move;
+    do {
+      move = Math.floor(Math.random()*9);
+    } while( !emptyBox({position: move, board}) ) ;
+    return move;
+  }
 
-    // if player is human
-
-    Array.from(boxes).forEach( (el, i) => {
-      // set boxes ids
-      el.id = i;
-      el.addEventListener('click', (e) => {
-        const box = e.target;
-        // if the box
-        if( tictactoe.play(box.id) ) {
-          box.classList.add('box-filled-' + tictactoe.turn);
-          // afficher le tour
-          player1.classList.toggle('active');
-          player2.classList.toggle('active');
-          const test = tictactoe.finishTest();
-          if ( test === 0 ) {
-            setTimeout(displayWin, 200, 0);
-            return;
-          } else if( test === 1 || test === 2) {
-            setTimeout(displayWin, 200, tictactoe.turn);
-            return;
-          } else
-          tictactoe.turn = tictactoe.turn === 1 ? 2 : 1;
-        }
-      });
-      //
-      el.addEventListener('mouseenter', (e) => {
-        const box = e.target;
-        if ( tictactoe.isEmpty(box.id) ) {
-          // if box empty add class current player ...
-          box.classList.add('box-filled-' + tictactoe.turn);
-        }
-      });
-      el.addEventListener('mouseleave', (e) => {
-        const box = e.target;
-        if ( tictactoe.isEmpty(box.id) ) {
-          // if box empty add class current player ...
-          box.classList.remove('box-filled-' + tictactoe.turn);
-        }
-      });
+  const minimax = (board, player) => {
+    // evaluation / base case
+    if( wins({board, player: 2}) ) {
+      return {score: 10};
+    } else if ( wins({board, player: 1}) ) {
+      return {score: -10};
+    } else if ( tieGame(board) ) {
+      return {score: 0};
+    }
+    // find possible moves
+    const possibleMoves = board.reduce( (pMoves, box, index) => {
+      return box === 0 ? pMoves.concat(index) : pMoves;
+    }, [])
+    .map( (index) => {
+      const move = {};
+      board[index] = player;
+      move.index = index;
+      move.score = minimax(board, player === 1 ? 2 : 1).score;
+      board[index] = 0;
+      return move;
     });
 
-    // else computer plays !!
+    const bestScore = possibleMoves.reduce( (bestScore, move) => {
+      if ( player === 2 ) {
+        return move.score > bestScore ? move.score : bestScore;
+      } else if ( player === 1 ) {
+        return move.score < bestScore ? move.score : bestScore;
+      }
+    }, player === 2 ? -10000 : 10000);
+    const bestMoves = possibleMoves.reduce( (bestMoves, move) => {
+      return move.score === bestScore
+              ? bestMoves.concat(move)
+              : bestMoves
+              ;
+    }, []);
 
+    const chosenMove = bestMoves[ Math.floor(Math.random() * bestMoves.length) ];
 
+    return chosenMove;
   }
-  const displayWin = () => {
-    const winner = tictactoe.finishTest();
-    const winnerName = winner === 1 ? tictactoe.players[0].name : tictactoe.players[1].name;
-    container.innerHTML = winTemplate;
-    // query div#finish
-    const finishDiv = document.getElementById('finish');
-    const finishP = document.getElementsByClassName('message')[0];
-    const finishClass = winner === 1
-                          ? 'screen-win-one'
-                          : winner === 2
-                            ? 'screen-win-two'
-                            : 'screen-win-tie'
-                            ;
-    const finishText = winner === 0
-                          ? 'Tie'
-                          : winnerName + ' wins !'
+
+  // Actions (side effects)
+  const promptName = () => {
+    playerName = prompt("Player One's Name ?", "Player One");
+    vsComputer = getId('vs-computer').checked;
+    opponentName = vsComputer
+                      ? navigator.userAgent.split(' ')[3]
+                      : prompt("Player Two's Name ?", "Player Two");
+  }
+  const setNamesDisplay = (player1Name) => {
+    getId('player-one-name').textContent = playerName;
+    getId('player-two-name').textContent = opponentName;
+  }
+  const changeTurn = (newTurn) => {
+    turn = newTurn;
+    if (newTurn === 1) {
+      getId('player1').classList.add('active');
+      getId('player2').classList.remove('active');
+    }
+    else if (newTurn === 2) {
+      getId('player1').classList.remove('active');
+      getId('player2').classList.add('active');
+    }
+    else {
+      getId('player1').classList.remove('active');
+      getId('player2').classList.remove('active');
+    }
+  }
+
+  // game phases
+  const gameStart = () => {
+    tttBoard = [
+      0, 0, 0,
+      0, 0, 0,
+      0, 0, 0
+    ];
+    // start
+    display(startTemplate);
+    // listen to button
+    getClass('button')[0].addEventListener('click', e => {
+      promptName();
+      gamePlay();
+    })
+  }
+  const gamePlay = () => {
+    display(gameTemplate);
+    setNamesDisplay();
+    changeTurn(1);
+    boxListeners();
+  }
+  const gameEnd = (endingOption) => {
+    changeTurn(0);
+    setTimeout( () => {
+      display(winTemplate);
+      const screenWinClass = endingOption === 0
+                            ? 'screen-win-tie'
+                            : endingOption === 1
+                              ? 'screen-win-one'
+                              : 'screen-win-two'
+                              ;
+      const endGameMessage = endingOption === 0
+                        ? 'Tie!'
+                        : endingOption === 1
+                          ? playerName + ' wins!'
+                          : opponentName + ' wins!'
                           ;
-    finishDiv.classList.add(finishClass);
-    finishP.textContent = finishText;
-    document.getElementsByClassName('button')[0].addEventListener('click', displayStart);
+      getId('finish').classList.add(screenWinClass);
+      getClass('message')[0].textContent = endGameMessage;
+      getClass('button')[0].addEventListener('click', gameStart);
+    }, 500);
+
   }
-  // GOOOOOO !
-  displayStart();
+
+  // eventListener
+  const setStartButton = () => {
+    document.getElementsByTagName('a')[0].addEventListener('click', () => {
+      playerName = promptName();
+      display(gameTemplate);
+    });
+  }
+  const boxListeners = () => {
+    const boxes = Array.from(getClass('box'));
+    boxes.forEach( (box) => {
+      box.addEventListener('click', (event) => {
+        let boxNumber = event.target.id;
+        if ( !(turn === 2 && vsComputer) && emptyBox({position: boxNumber, board: tttBoard}) ) {
+          // play
+          tttBoard = play({
+            player: turn,
+            position: boxNumber,
+            board: tttBoard
+          });
+          // display
+          boxes[boxNumber].classList.add('box-filled-' + turn);
+          //changeTurn(turn === 1 ? 2 : 1);
+          // test
+          const playerWins = wins({
+            board: tttBoard,
+            player: turn
+          });
+          if ( playerWins ) {
+            gameEnd(turn);
+            return;
+          }
+          else if ( tieGame(tttBoard) ) {
+            gameEnd(0);
+            return;
+          }
+          else {
+            changeTurn(turn === 1 ? 2 : 1);
+            if ( vsComputer ) {
+              setTimeout(() => {
+                //let computerMove = computerPlay(tttBoard);
+
+                let computerMove = minimax(tttBoard, 2).index;
+                // minimax();
+                // play
+                tttBoard = play({
+                  player: 2,
+                  board: tttBoard,
+                  position: computerMove
+                });
+                // display
+                boxes[computerMove].classList.add('box-filled-' + turn);
+                // computer plays
+                // test
+                const computerWins = wins({
+                  board: tttBoard,
+                  player: 2
+                });
+                if ( computerWins ) {
+                  gameEnd(2);
+                  return;
+                }
+                else if ( tieGame(tttBoard) ) {
+                  gameEnd(0);
+                  return;
+                }
+                // change turn
+                changeTurn(1);
+              }, 500);
+            }
+          }
+        }
+      });
+    });
+  }
+  // START THE GAME
+  gameStart();
 }());

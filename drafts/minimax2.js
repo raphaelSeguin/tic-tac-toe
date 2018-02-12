@@ -53,7 +53,7 @@ const minimax = (board, player) => {
     board[index] = player;
     move.index = index;
     move.score = minimax(board, player === 1 ? 2 : 1).score;
-    board[move] = 0;
+    board[index] = 0;
     return move;
   })
   .reduce( (bMove, move) => {
