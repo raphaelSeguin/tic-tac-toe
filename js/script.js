@@ -1,9 +1,3 @@
-/*
-Ajouter les commentaires
-effacer fonctions inutiles
-ameliorer minimax pour choisir aléatoirement un des meilleurs coups
-computer player en option au début
-*/
 'use strict';
 
 const ttt = (function() {
@@ -62,7 +56,6 @@ const ttt = (function() {
   const display = (template) => {
     getId('tic-tac-toe-container').innerHTML = template;
   }
-
   // tictactoe functions (pure)
   const wins = ({board, player} = {}) => {
     const b = board;
@@ -155,11 +148,11 @@ const ttt = (function() {
     opponentName = vsComputer
                       ? navigator.userAgent.split(' ')[3]
                       : prompt("Player Two's Name ?", "Player Two");
-  }
+  };
   const setNamesDisplay = (player1Name) => {
     getId('player-one-name').textContent = playerName;
     getId('player-two-name').textContent = opponentName;
-  }
+  };
   const changeTurn = (newTurn) => {
     // change the turn
     turn = newTurn;
@@ -176,7 +169,7 @@ const ttt = (function() {
       getId('player1').classList.remove('active');
       getId('player2').classList.remove('active');
     }
-  }
+  };
 
   // game phases go in cycle
   const gameStart = () => {
@@ -193,13 +186,13 @@ const ttt = (function() {
       promptName();
       gamePlay();
     })
-  }
+  };
   const gamePlay = () => {
     display(gameTemplate);
     setNamesDisplay();
     changeTurn(1);
     boxListeners();
-  }
+  };
   const gameEnd = (endingOption) => {
     changeTurn(0);
     setTimeout( () => {
@@ -220,7 +213,7 @@ const ttt = (function() {
       getClass('message')[0].textContent = endGameMessage;
       getClass('button')[0].addEventListener('click', gameStart);
     }, 500);
-  }
+  };
 
   // eventListeners
   const setStartButton = () => {
@@ -316,7 +309,8 @@ const ttt = (function() {
         }
       })
     });
-  }
+  };
+
   // START THE GAME
   gameStart();
 }());
